@@ -6,7 +6,6 @@ create table Badges(
                        constraint uk_badges_name unique (Name) using index (create unique index idx_badges_name_uk on Badges(Name))
 );
 
-/*alter table badges modify id number(10);*/
 
 
 create table Roles(
@@ -15,9 +14,6 @@ create table Roles(
                       constraint pk_roles primary key (Id)  using index (create unique index idx_roles_id on Roles(Id)),
                       constraint uk_roles_name unique(Name) using index (create unique index idx_roles_name_uk on Roles(Name))
 );
-/*delete from roles;
-alter table roles modify id number(10);
-select * from roles;*/
 
 create table Users(
                       Id number(10) generated always as identity(start with 100  order nomaxvalue minvalue 100),
@@ -42,8 +38,6 @@ create table user_tokens(
                             constraint pk_users_tokens primary key (User_Id,token_type) using index (create unique index idx_users_tokens_id ON user_tokens(User_Id,Token_Type))
 );
 
-/*alter table users modify  id number(10);
-alter table users modify  role_id number(10);*/
 
 create table Programs(
                          Id number(10) generated always as identity (start with 100  order nomaxvalue minvalue 100),
@@ -54,7 +48,6 @@ create table Programs(
                          constraint uk_program_name unique(Name) using index(create unique index idx_programs_name_uk on Programs(Name))
 );
 
-/*alter table Programs modify id number(10);*/
 
 create table Plans(
                       Id number(10) generated always as identity (start with 100 increment by 10 order nomaxvalue minvalue 100),
@@ -67,8 +60,6 @@ create table Plans(
                       constraint uk_plans_name unique(Name) using index (create unique index idx_plans_name_uk on Plans(Name))
 );
 
-/*alter table plans modify id number(10);
-alter table plans modify program_id number(10);*/
 
 create table Learning_Periods(
                                  Id number(10) generated always as identity(start with 100 increment by 10 order nomaxvalue minvalue 100),
@@ -80,8 +71,6 @@ create table Learning_Periods(
                                  constraint uk_periods_name_date unique(Name,Start_Date,End_Date) using index (create unique index idx_periods_name_date_uk on Learning_Periods(Name, Start_Date, End_Date))
 );
 
-/*alter table LEARNING_PERIODS modify id number(10);
-alter table Learning_Periods add Current_Period Number(1,0) not null;*/
 
 create table Batches(
                         Id number(10) generated always as identity (start with 100 increment by 5 order nomaxvalue minvalue 100),
@@ -95,12 +84,6 @@ create table Batches(
                         constraint uk_batches_name_pl_lp unique(Name,Plan_Id,Period_Id) using index (create unique index idx_batches_name_date_uk on Batches(Name,Plan_Id,Period_Id))
 );
 
-/*alter table batches modify id number(10);
-alter table batches modify plan_id number(10);*/
-/*alter table Batches add Period_Id int not null;
-alter table Batches add constraint fk_batches_learnign_period foreign key (Period_Id) references Learning_Periods(Id);
-alter table Batches add constraint uk_batches_name_pl_lp unique(Name,Plan_Id,Period_Id) using index (create unique index idx_batches_name_date_uk on Batches(Name,Plan_Id,Period_Id));*/
-
 create table Students(
                          Id number(10),
                          Graduated number(1,0) not null,
@@ -110,17 +93,9 @@ create table Students(
                          Active number(1,0) default 1 not null,
                          constraint fk_students_users foreign  key (Id) references Users(Id),
                          constraint fk_students_programs foreign key (Program_Id) references Programs(Id),
+                         constraint FK_STUDENTS_GRADE_SCALE foreign key (Gpa) references Grade_Scale(Id),
                          constraint pk_students primary key (Id) using index (create unique index idx_student_id on Students(Id))
 );
-
-/*alter table students modify id number(10);
-alter table students modify Program_id number(10);
-alter table students modify batch_id number(10);*/
-/*alter table students add GPA number(3,2) default 0 not null;*/
-
-alter table students drop column gpa;
-alter table students add gpa number(10);
-alter table students add constraint fk_students_grade_scale foreign key (GPA) references Grade_Scale(Id);
 
 create table Teachers(
                          Id number(10),
@@ -130,37 +105,23 @@ create table Teachers(
                          constraint pk_teachers primary key (Id) using index (create unique index idx_Teacher_id on Teachers(Id))
 );
 
-/*alter table teachers modify id number(10);*/
-
 create table Courses(
                         Id number(10) generated always as identity(start with 100 order nomaxvalue minvalue 100),
                         Name varchar2(100) not null,
                         Course_Code number(10) not null,
                         Max_Grade number(5,2) not null,
                         Pass_Grade number(5,2) not null,
-                        ExamWeight NUMBER(3,2) DEFAULT 0.6 not null,
-                        AssignmentWeight NUMBER(3,2) DEFAULT 0.3 not null,
-                        AttendanceWeight NUMBER(3,2) DEFAULT 0.1,
+                        Exam_Weight NUMBER(3,2) DEFAULT 0.6 not null,
+                        Assignment_Weight NUMBER(3,2) DEFAULT 0.3 not null,
+                        Attendance_Weight NUMBER(3,2) DEFAULT 0.1,
                         Allowed_Absence_Days number(10) not null,
+                        Credit_Hours number(10) not null,
                         constraint pk_courses primary key (Id) using index (create unique index idx_course_id on Courses(Id)),
+                        constraint fk_courses_pass_grade_scale foreign key (Pass_Grade) refereneces Grade_Scale(Id),
+                        constraint fk_courses_max_grade_scale foreign key (Max_Grade) references Grade_Scale(Id),
                         constraint uk_course_name_code unique (Name,Course_Code) using index (create unique index idx_course_name_code_uk on Courses(Name,Course_Code))
+                    ,constraint check_courses_pass_max_grade check (Pass_Grade!=Max_Grade)
 );
-
-alter table courses rename column examweight to exams_weight;
-alter table courses rename column AssignmentWeight to Assignment_Weight;
-alter table courses rename column AttendanceWeight to Attendance_Weight;
-alter table courses add Credit_Hours number(10) not null;
-alter table courses drop column PASS_GRADE;
-alter table courses drop column MAX_GRADE;
-alter table courses add pass_grade number(10) not null;
-alter table courses add max_grade number(10) not null;
-alter table COURSES add constraint fk_courses_pass_grade_scale foreign key (Pass_Grade) references Grade_Scale(Id);
-alter table COURSES add constraint fk_courses_max_grade_scale foreign key (Max_Grade) references Grade_Scale(Id);
-alter table courses add constraint check_courses_pass_max_grade check (Pass_Grade!=Max_Grade);
-
-/*alter table courses modify id number(10);
-alter table courses modify ALLOWED_ABSENCE_DAYS number(10);
-alter table courses modify Course_Code number(10);*/
 
 create table Sections(
                          Id number(10) generated always as identity(start with 100  order nomaxvalue minvalue 100),
@@ -176,13 +137,6 @@ create table Sections(
                          constraint fk_section_course_id foreign key(Course_Id) references Courses(Id)
 );
 
-/*alter table Sections modify Start_Time timestamp(6) with time zone;
-alter table Sections add Course_Id int not null;
-alter table Sections add constraint fk_section_course_id foreign key(Course_Id) references Courses(Id);
-alter table sections modify id number(10);
-alter table sections modify teacher_id number(10);
-alter table sections modify course_id number(10);
-alter table sections modify SECTION_NUMBER number(10);*/
 
 create table Materials(
                           Id number(10) generated always as identity (start with 100  order nomaxvalue minvalue 100),
@@ -193,10 +147,6 @@ create table Materials(
                           constraint fk_materials_courses foreign key (Course_Id) references Courses(Id),
                           constraint fk_materials_teachers foreign key (Teacher_Id) references Teachers(Id)
 );
-
-/*alter table Materials modify id number(10);
-alter table Materials modify Course_id number(10);
-alter table Materials modify teacher_id number(10);*/
 
 create table Assignments(
                             Id number(10) generated always as identity (start with 100  order nomaxvalue minvalue 100),
@@ -212,14 +162,6 @@ create table Assignments(
                             constraint fk_assignments_lperiods foreign key (Learning_Period_Id) references Learning_Periods(Id)
 );
 
-/*alter table assignments modify id number(10);
-alter table assignments modify section_id number(10);
-alter table assignments modify teacher_id number(10);
-alter table assignments modify learning_period_id number(10);*/
-
-/*alter table Assignments add Dead_Line timestamp with time zone not null;
-alter table Assignments add Upload_Date date not null;*/
-
 create table Attendance_Lists(
                                  Id number(10) generated always as identity(start with 100  order nomaxvalue minvalue 100),
                                  List_Date timestamp with time zone not null,
@@ -230,11 +172,6 @@ create table Attendance_Lists(
                                  constraint fk_att_lists_teachers foreign key (Teacher_Id) references Teachers(Id)
 );
 
-/*alter table Attendance_Lists modify id number(10);
-alter table Attendance_Lists modify Section_Id number(10);
-alter table Attendance_Lists modify Teacher_Id number(10);
-
-alter table Attendance_Lists modify List_Date timestamp with time zone;*/
 
 create table Exam_Types(
                            Id number(10) generated always as identity (start with 100 increment by 10 order nomaxvalue minvalue 100),
@@ -243,7 +180,6 @@ create table Exam_Types(
                            constraint uk_exam_types unique (Name) using index (create unique index idx_exam_types_uk on Exam_Types(Name))
 );
 
-/*alter table Exam_Types modify id number(10);*/
 
 create table Exams(
                       Id number(10) generated always as identity (start with 100 order nomaxvalue minvalue 100),
@@ -263,15 +199,6 @@ create table Exams(
                       constraint uk_exams_exam_type_lperiod unique (Course_Id,Exam_Type_Id,Learning_Period_Id) using index (create unique index idx_exams_exam_type_lperiod_uk on Exams(Course_Id,Exam_Type_Id,Learning_Period_Id))
 );
 
-/*alter table Exams modify id number(10);
-alter table Exams modify course_id number(10);
-alter table exams modify exam_type_id number(10);
-alter table exams modify Learning_Period_Id number(10);
-alter table exams modify Teacher_Id number(10);
-
-alter table exams modify start_time timestamp with time zone;
-alter table exams modify end_time timestamp with time zone;*/
-
 
 create table Questions(
                           Id number(10) generated always as identity (start with 100 order nomaxvalue minvalue 100),
@@ -283,8 +210,6 @@ create table Questions(
                           constraint uk_question unique (Question) using index (create unique index idx_question_uk on Questions(Question))
 );
 
-/*alter table questions modify id number(10);
-alter table questions modify exam_id number(10);*/
 
 create table Answers(
                         Id number(10) generated always as identity (start with 100 order nomaxvalue minvalue 100),
@@ -296,16 +221,12 @@ create table Answers(
                         constraint uk_answer unique (Answer) using index (create unique index idx_answer_uk on Answers(Answer))
 );
 
-/*alter table answers modify id number(10);
-alter table answers modify question_id number(10);*/
-
 create table Work_days(
                           Id number(10) generated always as identity (start with 100 increment by 10 order nomaxvalue minvalue 100),
                           Day varchar2(20),
                           constraint pk_work_days primary key (Id) using index (create unique index idx_workday_id on Work_days(Id))
 );
 
-/*alter table WORK_DAYS modify id number(10);*/
 
 create table Teachers_Schedules(
                                    Day_Id number(10),
@@ -315,8 +236,6 @@ create table Teachers_Schedules(
                                    constraint pk_teachers_schedule primary key (Day_Id,Teacher_Id) using index (create unique index idx_teachers_schedule_id on Teachers_Schedules(Day_Id,Teacher_Id) )
 );
 
-/*alter table TEACHERS_SCHEDULES modify day_id number(10);
-alter table TEACHERS_SCHEDULES modify teacher_id number(10)*/;
 
 create table Sections_Schedules(
                                    Day_Id number(10),
@@ -326,8 +245,6 @@ create table Sections_Schedules(
                                    constraint pk_sections_schedule primary key (Day_Id,Section_Id) using index (create unique index idx_sections_schedule_id on Sections_Schedules(Day_Id,Section_Id))
 );
 
-/*alter table SECTIONS_SCHEDULES modify day_id number(10);
-alter table SECTIONS_SCHEDULES modify section_id number(10);*/
 
 create table Teaching_Assignments(
                                      Course_Id number(10),
@@ -337,8 +254,6 @@ create table Teaching_Assignments(
                                      constraint pk_teaching_assignment primary key (Course_Id,Teacher_Id) using index (create unique index idx_teaching_assignments_id on Teaching_Assignments(Course_Id,Teacher_Id))
 );
 
-/*alter table TEACHING_ASSIGNMENTS modify course_id number(10);
-alter table TEACHING_ASSIGNMENTS modify teacher_id number(10);*/
 
 create table Exam_Type_Assignments(
                                       Course_Id number(10),
@@ -347,11 +262,6 @@ create table Exam_Type_Assignments(
                                       constraint fk_exam_types_assignments_exam_types foreign key (Exam_Type_Id) references Exam_Types(Id),
                                       constraint pk_exam_type_assignments primary key (Course_Id,Exam_Type_Id) using index (create unique index idx_exam_type_assignments_id on Exam_Type_Assignments(Course_Id,Exam_Type_Id))
 );
-alter table EXAM_TYPE_ASSIGNMENTS add weight NUMBER(3,2);
-alter table Exam_Type_Assignments drop column weight;
-
-/*alter table Exam_Type_Assignments modify course_id number (10);
-alter table Exam_Type_Assignments modify exam_type_id number (10);*/
 
 create table Assignments_Submissions(
                                         Assignment_Id number(10),
@@ -363,10 +273,6 @@ create table Assignments_Submissions(
                                         constraint pk_assignments_submissions primary key (Assignment_Id,Student_Id) using index (create unique index idx_assignments_submissions on Assignments_Submissions(Assignment_Id,Student_Id))
 );
 
-/*alter table Assignments_Submissions modify assignment_id number(10);
-alter table Assignments_Submissions modify STUDENT_id number(10);
-alter table Assignments_Submissions modify Submission_Date timestamp with time zone;*/
-
 create table Attendance_Records(
                                    Attendance_List_Id number(10),
                                    Student_Id number(10),
@@ -377,11 +283,6 @@ create table Attendance_Records(
                                    constraint pk_attendance_records primary key (Attendance_List_Id,Student_Id) using index(create unique index idx_attendance_records_id on Attendance_Records(Attendance_List_Id,Student_Id))
 );
 
-/*alter table Attendance_Records modify attendance_list_id number(10);
-alter table Attendance_Records modify STUDENT_ID number(10);
-
-alter table Attendance_Records modify Record_Date timestamp with time zone;*/
-
 create table Section_Enrollments(
                                     Section_Id number(10),
                                     Student_Id number(10),
@@ -390,23 +291,17 @@ create table Section_Enrollments(
                                     constraint pk_section_enrollments primary key(Section_Id,Student_Id) using index (create unique index idx_section_enrollments_id on Section_Enrollments(Section_Id,Student_Id))
 );
 
-/*alter table Section_Enrollments modify section_id number(10);
-alter table Section_Enrollments modify student_id number(10);*/
 create table Courses_Enrollments(
                                     Course_Id number(10),
                                     Student_Id number(10),
                                     Student_Mark number(5,2),
                                     Absence_Days number(10) default 0 not null,
+                                    Letter_Grade number(10),
+                                    constraint fk_courses_enrollments_grade_scale foreign key (Letter_Grade) references Grade_Scale(Id),
                                     constraint fk_course_enrollments_courses foreign key (Course_Id) references Courses(Id),
                                     constraint fk_course_enrollments_students foreign key (Student_Id) references Students(Id),
                                     constraint pk_course_enrollments primary key (Course_Id,Student_Id) using index(create unique index idx_course_enrollments_id on Courses_Enrollments(Course_Id,Student_Id))
 );
-alter table COURSES_ENROLLMENTS add letter_grade number(10);
-alter table courses_enrollments add constraint fk_courses_enrollments_grade_scale foreign key (letter_grade) references Grade_Scale(Id);
-
-/*alter table COURSES_ENROLLMENTS modify course_id number(10);
-alter table COURSES_ENROLLMENTS modify student_id number(10);
-alter table COURSES_ENROLLMENTS modify absence_days number(10);*/
 
 create table Course_Plan(
                             Plan_Id number(10),
@@ -419,10 +314,6 @@ create table Course_Plan(
                             constraint check_prerequisite_course check(Course_Id!=Prerequisite)
     );
 
-/*alter table courses_plans modify plan_id number(10);
-alter table courses_plans modify course_id number(10);
-alter table courses_plans modify Prerequisite number(10);*/
-
 create table Students_Exams(
                                Exam_Id number(10),
                                Student_Id number(10),
@@ -433,9 +324,6 @@ create table Students_Exams(
                                constraint pk_student_exam primary key (Exam_Id, Student_Id) using index(create unique index idx_student_exam_id on Students_Exams(Exam_Id, Student_Id))
 );
 
-/*alter table Students_Exams modify Submission_Date timestamp with time zone;
-alter table Students_Exams modify exam_id number(10);
-alter table Students_Exams modify student_id number(10);*/
 
 create table Courses_Periods(
                                 Course_Id number(10),
@@ -446,8 +334,6 @@ create table Courses_Periods(
                                     create unique index idx_course_period_id on Courses_Periods(Course_Id,Period_Id))
 );
 
-/*alter table courses_periods modify course_id number(10);
-alter table courses_periods modify period_id number(10);*/
 
 create table Courses_Badges(
                                Course_Id number(10),
@@ -457,9 +343,6 @@ create table Courses_Badges(
                                constraint pk_courses_badges_id primary key (Course_Id,Badge_Id) using index (create unique index idx_courses_badges_id on Courses_Badges(Course_Id,Badge_Id))
 );
 
-/*alter table courses_badges modify course_id number(10);
-alter table courses_badges modify Badge_Id number(10);*/
-
 create table Badges_Assignments(
                                    Student_Id number(10),
                                    Badge_Id number(10),
@@ -467,9 +350,6 @@ create table Badges_Assignments(
                                    constraint fk_badges_assignments_badge foreign key (Badge_Id) references Badges(Id),
                                    constraint pk_badges_assignments_id primary key (Student_Id,Badge_Id) using index (create unique index idx_badges_assignments_id on Badges_Assignments(Student_Id,Badge_Id))
 );
-
-/*alter table BADGES_ASSIGNMENTS modify student_id number(10);
-alter table BADGES_ASSIGNMENTS modify Badge_Id number(10);*/
 
 CREATE TABLE Grade_Scale (
                              Id number(10) GENERATED ALWAYS AS IDENTITY,
@@ -481,21 +361,6 @@ CREATE TABLE Grade_Scale (
                              CONSTRAINT uk_grade_scale_range UNIQUE (Percentage_Min, Percentage_Max)
 );
 
-/*alter table STUDENTS add active number(1,0) default 1 not null;*/
-/*alter table teachers add working number(1,0) default 1 not null ;*/
-/*alter table programs add active number(1,0) default 1 not null ;
-alter table plans add active number(1,0) default 1 not null ;
-alter table batches add active number(1,0) default 1 not null ;*/
-/*delete from USERS where ID=100;*/
-
-/*alter table users add email_confirmed number(1,0) default 0 not null;*/
-
-
-
-/*alter table users_tokens rename to user_tokens;*/
-/*alter table USERS add user_timezone varchar2(100) not null;*/
-
-/*alter table materials drop column  MATERIAL_PATH;*/
 
 
 
